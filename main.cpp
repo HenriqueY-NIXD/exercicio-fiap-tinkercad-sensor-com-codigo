@@ -203,35 +203,41 @@ void loop()
 				}
 			}
 		} else if (index_coluna == 0) {
-			lcd.setCursor(0, 0);
 			switch(tecla_apertada){
 				case 'A':
+          lcd.setCursor(0, 0);
 					lcd.print("ANDERSON CARLOS");
 					lcd.setCursor(0, 1);
 					lcd.print("94982");
 					delay(1000);
 					lcd.clear();
-					break;
-				case 'B':
-					lcd.print("HENRIQUE YAMADA");
+
+          lcd.setCursor(0, 0);
+          lcd.print("HENRIQUE YAMADA");
 					lcd.setCursor(0, 1);
 					lcd.print("95863");
 					delay(1000);
 					lcd.clear();
-					break;
-				case 'C':
-					lcd.print("ISABELA SANTANA");
+
+          lcd.setCursor(0, 0);
+          lcd.print("ISABELA SANTANA");
 					lcd.setCursor(0, 1);
 					lcd.print("96066");
 					delay(1000);
 					lcd.clear();
-					break;
-				case 'D':
-					lcd.print("WALLACE SAMPAIO");
+
+          lcd.setCursor(0, 0);
+          lcd.print("WALLACE SAMPAIO");
 					lcd.setCursor(0, 1);
 					lcd.print("95958");
 					delay(1000);
 					lcd.clear();
+					break;
+				case 'B':
+					break;
+				case 'C':
+					break;
+				case 'D':
 					break;
 				default:
 					lcd.print("??????????");
