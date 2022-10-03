@@ -22,9 +22,10 @@ char teclas[4][4]=
 char teclas_letras[4] = {'A', 'B', 'C', 'D'};
 
 int index_coluna = 0;
-int index_linha = 0;
+int index_linha = 1;
 
 int is_resetar_senha = 0;
+int is_senha_atual_certa = 0;
 
 char senha[6] = {'1', '2', '3', '4', '5', '6'};
 
@@ -119,6 +120,9 @@ void setup()
   digitalWrite(LUZ_VERDE, HIGH);
   delay(250);
   digitalWrite(LUZ_VERDE, LOW);*/
+
+  lcd.setCursor(0, 0);
+  printarMensagem();
 }
 
 void loop()
@@ -139,6 +143,10 @@ void loop()
 			if (tecla_apertada == '#'){
 				if (index_coluna != 0){
 					lcd.clear();
+          lcd.setCursor(0, 0);
+          
+          printarMensagem();
+          
 					for(int i = 0; i < index_coluna-1; i++){
 						lcd.setCursor(i, index_linha);
 						lcd.print(senha_escrita[i]);
@@ -147,9 +155,11 @@ void loop()
 				}
 			} else if (tecla_apertada == '*'){
 				lcd.clear();
-				for(int i = 0; i < 6; i++) {
-					senha_escrita[i] = -1;
-				}
+				zerarSenha();
+        lcd.setCursor(0, 0);
+        
+        printarMensagem();
+
 				index_coluna = 0;
 			} else {
 				lcd.print(tecla_apertada);
@@ -161,25 +171,40 @@ void loop()
 						Serial.print(senha_escrita[i]);
 					}
 					Serial.println("");
-					
+
 					delay(500);
-					
+
 					lcd.clear();
 					lcd.setCursor(0, 0);
 					
-					if (!(strncmp(senha_escrita, senha, 6)))
+          if (is_resetar_senha == 1 && is_senha_atual_certa == 1) {
+            for(int i=0; i<6; i++) {
+              senha[i] = senha_escrita[i];
+            }
+            is_resetar_senha = 0;
+            is_senha_atual_certa = 0;
+            index_coluna = 0;
+            zerarSenha();
+            lcd.clear();
+            lcd.setCursor(0, 0);
+            printarMensagem();
+          } else if (!(strncmp(senha_escrita, senha, 6)))
 					{
-						lcd.print("SENHA CERTA");
-						Serial.println("Senha Certa");
-						digitalWrite(LUZ_VERDE, HIGH);
-						tone(BUZZER, DOS, 250);
-						delay(250);
-						digitalWrite(LUZ_VERDE, LOW);
-						delay(250);
-						digitalWrite(LUZ_VERDE, HIGH);
-						tone(BUZZER, DOS, 250);
-						delay(250);
-						digitalWrite(LUZ_VERDE, LOW);
+						if (is_resetar_senha == 0) {
+              lcd.print("SENHA CERTA");
+              Serial.println("Senha Certa");
+              digitalWrite(LUZ_VERDE, HIGH);
+              tone(BUZZER, DOS, 250);
+              delay(250);
+              digitalWrite(LUZ_VERDE, LOW);
+              delay(250);
+              digitalWrite(LUZ_VERDE, HIGH);
+              tone(BUZZER, DOS, 250);
+              delay(250);
+              digitalWrite(LUZ_VERDE, LOW);
+            } else {
+              is_senha_atual_certa = 1;
+            }
 					} else {
 						lcd.print("SENHA ERRADA");
 						digitalWrite(LUZ_VERMELHA, HIGH);
@@ -192,19 +217,21 @@ void loop()
 						delay(250);
 						digitalWrite(LUZ_VERMELHA, LOW);
 					}
-					
-					index_coluna = 0;
-					for(int i = 0; i < 6; i++) {
-						senha_escrita[i] = '_';
-					}
+
+          index_coluna = 0;
+					zerarSenha();
 					lcd.clear();
+          lcd.setCursor(0, 0);
+          printarMensagem();
 				} else {
 					++index_coluna;
 				}
 			}
-		} else if (index_coluna == 0) {
+		} else if (index_coluna == 0 ) {
 			switch(tecla_apertada){
 				case 'A':
+          lcd.clear();
+          
           lcd.setCursor(0, 0);
 					lcd.print("ANDERSON CARLOS");
 					lcd.setCursor(0, 1);
@@ -234,12 +261,28 @@ void loop()
 					lcd.clear();
 					break;
 				case 'B':
+          if (is_resetar_senha == 0) {
+            is_resetar_senha = 1;
+            lcd.clear();
+            lcd.setCursor(0, 0);
+            printarMensagem();
+            lcd.setCursor(0, 1);
+          } else {
+            is_resetar_senha = 0;
+            is_senha_atual_certa = 0;
+            lcd.clear();
+            lcd.setCursor(0, 0);
+            zerarSenha();
+            printarMensagem();
+          }
 					break;
 				case 'C':
 					break;
 				case 'D':
 					break;
 				default:
+          lcd.clear();
+          lcd.setCursor(0, 0);
 					lcd.print("??????????");
 					delay(1000);
 					Serial.println(tecla_apertada);
@@ -247,6 +290,35 @@ void loop()
 			}
 		}
 	}
+}
+
+void zerarSenha() {
+  for(int i = 0; i < 6; i++) {
+    senha_escrita[i] = '_';
+  }
+}
+
+void printarMensagem() {
+  if (is_resetar_senha == 0)
+    _initialMessage();
+  else {
+    if (is_senha_atual_certa == 0)
+      _resetPasswordMessage();
+    else
+      _newPasswordMessage();
+  }
+}
+
+void _initialMessage() {
+  lcd.print("Digite a senha:");
+}
+
+void _resetPasswordMessage() {
+  lcd.print("SENHA ATUAL:");
+}
+
+void _newPasswordMessage() {
+  lcd.print("NOVA SENHA:");
 }
 
 
