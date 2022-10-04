@@ -1,13 +1,19 @@
 #include <Adafruit_LiquidCrystal.h>
 #include <EEPROM.h>
 #include <Keypad.h>
+#include <Wire.h>
 
 #define BUZZER 13
 #define LUZ_VERMELHA 12
 #define LUZ_VERDE 11
+#define PIN_SENSOR 2
+#define SECOND_ARD_ADDR 9
+#define ANSWER_SIZE 5
 
 #define DOS 528
 #define DO 262
+
+#define slaveAdress 0x08
 
 Adafruit_LiquidCrystal lcd(0);
 
@@ -21,11 +27,19 @@ char teclas[4][4]=
 
 char teclas_letras[4] = {'A', 'B', 'C', 'D'};
 
+int previous_time = millis();
+int alarm_pitch = LOW;
+int buzzer_state = LOW;
+int last_buzzer_state = LOW;
+
 int index_coluna = 0;
 int index_linha = 1;
 
 int is_resetar_senha = 0;
 int is_senha_atual_certa = 0;
+int is_intruder_alert = 0;
+
+unsigned long lastDebounceTime = 0;
 
 char senha[6] = {'1', '2', '3', '4', '5', '6'};
 
@@ -39,10 +53,12 @@ Keypad keypad= Keypad(makeKeymap(teclas), linhas, colunas, 4, 4);
 void setup()
 {
   Serial.begin(9600);
+  Wire.begin();
   
-  pinMode(13, OUTPUT);
+  // pinMode(BUZZER, OUTPUT);
   pinMode(LUZ_VERMELHA, OUTPUT);
   pinMode(LUZ_VERDE, OUTPUT);
+  pinMode(PIN_SENSOR, INPUT);
   
   lcd.begin(16, 2);
   /*
@@ -127,8 +143,29 @@ void setup()
 
 void loop()
 {
+  if (is_intruder_alert == 1)
+    tone(BUZZER, DOS);
+
+  int current_time = millis();
 	lcd.setCursor(index_coluna, index_linha);
 	char tecla_apertada = keypad.getKey();
+
+  int sensor_pin_status = digitalRead(PIN_SENSOR);
+  
+  // if (is_intruder_alert == 1 && is_resetar_senha == 1 || is_senha_atual_certa == 1) {
+  //   lcd.clear();
+  //   zerarSenha();
+  //   is_resetar_senha = 0;
+  //   is_senha_atual_certa = 0;
+  //   lcd.setCursor(0, 0);
+    
+  //   printarMensagem();
+
+  //   index_coluna = 0;
+  // }
+
+  if(sensor_pin_status == HIGH)
+    is_intruder_alert = 1;
 
 	if (tecla_apertada)
 	{
@@ -188,19 +225,22 @@ void loop()
             lcd.clear();
             lcd.setCursor(0, 0);
             printarMensagem();
-          } else if (!(strncmp(senha_escrita, senha, 6)))
-					{
+          } else if (!(strncmp(senha_escrita, senha, 6))){
 						if (is_resetar_senha == 0) {
               lcd.print("SENHA CERTA");
               Serial.println("Senha Certa");
               digitalWrite(LUZ_VERDE, HIGH);
-              tone(BUZZER, DOS, 250);
-              delay(250);
+              // tone(BUZZER, DOS, 250);
+              is_intruder_alert = 0;
+              Wire.beginTransmission(slaveAdress);
+              Wire.write(LOW);
+              Wire.endTransmission();
+              delay(100);
               digitalWrite(LUZ_VERDE, LOW);
-              delay(250);
+              delay(100);
               digitalWrite(LUZ_VERDE, HIGH);
-              tone(BUZZER, DOS, 250);
-              delay(250);
+              // tone(BUZZER, DOS, 250);
+              delay(100);
               digitalWrite(LUZ_VERDE, LOW);
             } else {
               is_senha_atual_certa = 1;
@@ -208,12 +248,12 @@ void loop()
 					} else {
 						lcd.print("SENHA ERRADA");
 						digitalWrite(LUZ_VERMELHA, HIGH);
-						tone(BUZZER, DO, 250);
+						// tone(BUZZER, DO, 250);
 						delay(250);
 						digitalWrite(LUZ_VERMELHA, LOW);
 						delay(250);
 						digitalWrite(LUZ_VERMELHA, HIGH);
-						tone(BUZZER, DO, 250);
+						// tone(BUZZER, DO, 250);
 						delay(250);
 						digitalWrite(LUZ_VERMELHA, LOW);
 					}
@@ -261,7 +301,7 @@ void loop()
 					lcd.clear();
 					break;
 				case 'B':
-          if (is_resetar_senha == 0) {
+          if (is_resetar_senha == 0 && is_intruder_alert == 0) {
             is_resetar_senha = 1;
             lcd.clear();
             lcd.setCursor(0, 0);
@@ -277,6 +317,7 @@ void loop()
           }
 					break;
 				case 'C':
+          buzzer_state = !buzzer_state;
 					break;
 				case 'D':
 					break;
