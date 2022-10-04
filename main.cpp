@@ -91,6 +91,9 @@ void loop()
     if (is_tecla_apertada_number == 0) {
       switch(tecla_apertada){
 				case 'A':
+          if (is_entry_permitted == 1)
+            is_intruder_alert = 0;
+          
           is_entry_permitted = 0;
           is_resetar_senha = 0;
           is_senha_atual_certa = 0;
