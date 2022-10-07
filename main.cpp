@@ -189,6 +189,17 @@ void loop()
               digitalWrite(LUZ_VERDE, LOW);
               delay(500);
             }
+          } else {
+            lcd.print("SENHA ERRADA");
+
+            digitalWrite(LUZ_VERMELHA, HIGH);
+            delay(100);
+            digitalWrite(LUZ_VERMELHA, LOW);
+            delay(100);
+            digitalWrite(LUZ_VERMELHA, HIGH);
+            delay(100);
+            digitalWrite(LUZ_VERMELHA, LOW);
+            delay(500);
           }
           index_coluna = 0;
           zerarSenha();
